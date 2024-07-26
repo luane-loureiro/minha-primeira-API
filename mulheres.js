@@ -1,88 +1,74 @@
 const express = require("express") //iniciando o express
 const router = express.Router()// configurando a primeira parte da rota
-const { v4: uuidv4 } = require('uuid')
+
+const conectaBancoDeDados = require('./bancoDeDados')// ligando ao arquivo de banco de dados
+conectaBancoDeDados()// chamando a função que conecta o banco de dados
+
+const Mulher = require('./mulherModel')
 
 const app = express()// iniciando o app
 app.use(express.json())
 const porta = 3333;// criando porta
 
-// ciando lista inicial de mulheres
-const mulheres = [
-    {
-        id: "1",
-        nome:"Luane Loureiro",
-        imagem:"https://avatars.githubusercontent.com/luane-loureiro.png",
-        miniBio:"Sou vidrada em comunicação visual e tecnologia, estudei na escola de belas artes da UFRJ e Desenho industrial na universidade Estácio de Sá, com bolsa integral.  Atualmente tenho minha própria empresa com marca registrada no INPI, onde eu sou responsavel pelo site e toda a parte de Design.  Depois de anos a frente da minha empresa, busco novos desafios na área de Design, Games e tecnologia.  Nos tempos livres gosto de ler, jogar video game, desenhar e Faço aulas de Balé."
-    },
-    {
-        id: "2",
-        nome:"Simara conceoção",
-        imagem:"https://avatars.githubusercontent.com/simaraconceicao.png",
-        miniBio:"desenvolvedora e Instrutora"
-    }, 
-    {
-        id: "3",
-        nome: 'Iana Chan',
-        imagem: 'https://bit.ly/3JCXBqP',
-        minibio: 'CEO & Founder da PrograMaria',
-     
-      },
-      {
-        id: "4",
-        nome: 'Luana Pimentel',
-        imagem: 'https://bit.ly/3FKpFaz',
-        minibio: 'Senior Staff Software Engineer',
-      }
-]
-
 //GET
-function mostraMulheres(request, response){
-    response.json(
-        mulheres
-    )
+async function mostraMulheres(request, response){
+    try { 
+        const mulheresVindasDoDB = await Mulher.find()
+        response.json(mulheresVindasDoDB)
+
+    }catch(erro){
+        console.log(erro)
+    }
 
 }
 
 // POST
-function criaMulher(request, response){
-    const novaMulher = {
-        id: uuidv4(),
+async function criaMulher(request, response){
+    const novaMulher = new Mulher({
         nome: request.body.nome,
         imagem: request.body.imagem,
+        citacao: request.body.citacao,
         minibio: request.body.minibio
-    }
+    })
 
-    mulheres.push(novaMulher)
-
-    response.json(mulheres)
+    try{
+        const mulherCriada = await novaMulher.save()
+        response.status(201).json(mulherCriada)
+    } catch(erro)
+        console.log(erro)
 }
 
 //PATCH
-function corrigeMulher(request, response) {
-    function encontraMulher(mulher) {
-      if (mulher.id === request.params.id) {
-        return mulher
-      }
+async function corrigeMulher(request, response) {
+    try{
+        const mulherEncontrada = await Mulher.findById(request.params.id) 
+        if (request.body.nome) {
+            mulherEncontrada.nome = request.body.nome
+        }
+           
+        if (request.body.minibio) {
+            mulherEncontrada.minibio = request.body.minibio
+        }
+         
+        if (request.body.imagem) {
+            mulherEncontrada = request.body.imagem
+        }
+
+        if (request.body.citacao) {
+            mulherEncontrada = request.body.citacao
+        }
+
+        const mulherAtualizadaNoDB = await mulherEncontrada.save()
+        response.json(mulherAtualizadaNoDB)
+
+    } catch (erro){
+        console.log(erro)
     }
-    const mulherEncontrada = mulheres.find(encontraMulher)
-   
-    if (request.body.nome) {
-      mulherEncontrada.nome = request.body.nome
-    }
-     
-    if (request.body.minibio) {
-        mulherEncontrada.minibio = request.body.minibio
-    }
-   
-    if (request.body.imagem) {
-        mulherEncontrada.imagem = request.body.imagem
-    }
-   
-    response.json(mulheres)
+
    }
 
 // DELETE
-function apagaMulher(request, response) {
+async function apagaMulher(request, response) {
     function todasMenosEla(mulher){
         if (mulher.id !== request.params.id){
             return mulher
