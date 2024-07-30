@@ -13,7 +13,7 @@ const MulherSchema = new mongoose.Schema({
         type: String,
         require: true
     },
-    miniBio: {
+    minibio: {
         type: String,
         require: true
     }

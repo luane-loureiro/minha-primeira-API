@@ -1,5 +1,6 @@
 const express = require("express") //iniciando o express
 const router = express.Router()// configurando a primeira parte da rota
+const cors = require ("cors") //trazendo o pacote cors que permite consumir essa api do front-end
 
 const conectaBancoDeDados = require('./bancoDeDados')// ligando ao arquivo de banco de dados
 conectaBancoDeDados()// chamando a função que conecta o banco de dados
@@ -8,6 +9,7 @@ const Mulher = require('./mulherModel')
 
 const app = express()// iniciando o app
 app.use(express.json())
+app.use(cors())
 const porta = 3333;// criando porta
 
 //GET
@@ -28,7 +30,7 @@ async function criaMulher(request, response){
         nome: request.body.nome,
         imagem: request.body.imagem,
         citacao: request.body.citacao,
-        miniBio: request.body.miniBio
+        minibio: request.body.minibio,
     })
 
     try{
@@ -43,15 +45,16 @@ async function criaMulher(request, response){
 //PATCH
 async function corrigeMulher(request, response) {
     try{
-        const mulherEncontrada = await Mulher.findById(request.params.id) 
+        let mulherEncontrada = await Mulher.findById(request.params.id) 
         if (request.body.nome) {
             mulherEncontrada.nome = request.body.nome
+ 
         }
-           
+        console.log(request.body) 
         if (request.body.minibio) {
             mulherEncontrada.minibio = request.body.minibio
         }
-         
+
         if (request.body.imagem) {
             mulherEncontrada = request.body.imagem
         }
@@ -60,6 +63,7 @@ async function corrigeMulher(request, response) {
             mulherEncontrada = request.body.citacao
         }
 
+        console.log(mulherEncontrada)
         const mulherAtualizadaNoDB = await mulherEncontrada.save()
         response.json(mulherAtualizadaNoDB)
 
@@ -87,6 +91,6 @@ function mostraPorta (){
 app.use(router.get('/mulheres', mostraMulheres)) // configuta rota GET /mulheres
 app.use(router.post('/mulheres', criaMulher)) // configura rota POST /mulheres
 app.use(router.patch('/mulheres/:id', corrigeMulher )) // configura rota PATCH /mulheres/:id
-app.use(router.patch('mulher/:id', apagaMulher))// configura a rota delet /mulher/:id
+app.use(router.delete('/mulheres/:id', apagaMulher)) // configura a rota delet /mulheres/:id
 
 app.listen(porta, mostraPorta) // server ouvindo a porta
