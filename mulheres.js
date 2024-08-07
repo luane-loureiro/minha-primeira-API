@@ -61,8 +61,12 @@ async function corrigeMulher(request, response) {
             mulherEncontrada = request.body.imagem
         }
 
-        if (request.body.citacao) {
-            mulherEncontrada = request.body.citacao
+        if (request.body.github) {
+            mulherEncontrada = request.body.github
+        }
+
+        if (request.body.linkedin) {
+            mulherEncontrada = request.body.linkedin
         }
 
         console.log(mulherEncontrada)
